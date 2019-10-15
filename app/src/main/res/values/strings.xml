@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Slide Show</string>
+    <string name="loading_app">Loading</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="ok">OK</string>
+    <string name="title_add">Select a file to add to the slide show</string>
+    <string name="title_remove">"Select a file to delete from the slide show"</string>
+
+    <string name="title_choose">Choose an action</string>
+    <string name="option_add">Add slides</string>
+    <string name="option_remove">Remove slides</string>
+
+    <string name="all_slides_removed">All Slides removed. Please add slides to the slide show</string>
+
+    <string name="toast_add">File added %1s</string>
+    <string name="toast_already_added">"File already added"</string>
+    <string name="toast_remove">Deleted file %1s from slide show</string>
+    <string name="toast_error">Failed to deleted file %1$s from slide show</string>
+
+    <string name="prompt_no_slides">No slides found. Please add slides to the slide show</string>
+    <string name="add">Add</string>
+    <string name="add_defaults">Add Default Images</string>
+
+    <string name="content_description_slide">Slide Image</string>
+    <string name="content_description_info">Info</string>
+    <string name="content_description_back">Back</string>
+    <string name="content_description_icon">Icon</string>
+    <string name="content_description_right_arrow">Right Arrow</string>
+    <string name="content_description_left_arrow">Left Arrow</string>
+    <string name="content_description_settings">Settings</string>
+</resources>
