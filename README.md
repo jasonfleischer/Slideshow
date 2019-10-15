@@ -1,11 +1,10 @@
 # Slideshow
-Andropid slideshow application
+Android slideshow application
 
-
-mininmun API 18
+Minimum Android 4.3 Jelly Bean (API 18)
 
 ### Screenshots
-!(main)[screenshots/main.png]
+!(main)[/screenshots/main.png]
 
 
 Author: Jason Fleischer
