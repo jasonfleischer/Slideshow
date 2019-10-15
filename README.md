@@ -1,4 +1,4 @@
-# Slideshow
+# Slide Show
 Android slideshow application. With adding and removing capabilities supporting multiple media formats.
 
 Minimum Android 4.3 Jelly Bean (API 18)
