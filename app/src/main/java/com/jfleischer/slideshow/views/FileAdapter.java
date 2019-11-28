@@ -1,6 +1,5 @@
 package com.jfleischer.slideshow.views;
 
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +20,7 @@ public class FileAdapter extends BaseAdapter {
 
     public FileAdapter(LayoutInflater inflater, FileActivityMode mode) {
         mInflater = inflater;
-        mItems = new LinkedList<FileItem>();
+        mItems = new LinkedList<>();
         mMode = mode;
     }
 
@@ -58,26 +57,24 @@ public class FileAdapter extends BaseAdapter {
         ImageView icon = v.findViewById(R.id.icon);
         switch (item.type) {
             case DOC:
+                ImageView info_icon = v.findViewById(R.id.icon_info);
                 switch (mMode) {
                     case Add:
-                        ((ImageView) v.findViewById(R.id.icon_info)).setImageResource(R.drawable.add);
+                        info_icon.setImageResource(R.drawable.add);
                         break;
                     case Delete:
-                        ((ImageView) v.findViewById(R.id.icon_info)).setImageResource(R.drawable.delete);
+                        info_icon.setImageResource(R.drawable.delete);
                         break;
                 }
-                icon.setImageResource(R.drawable.ic_doc);
+                icon.setImageResource(R.drawable.document);
                 break;
             case DIR:
-                ((ImageView) v.findViewById(R.id.icon_info)).setImageResource(android.R.color.transparent);
-                icon.setImageResource(R.drawable.ic_dir);
+                icon.setImageResource(R.drawable.folder);
                 break;
             case PARENT:
-                ((ImageView) v.findViewById(R.id.icon_info)).setImageResource(android.R.color.transparent);
-                icon.setImageResource(R.drawable.ic_arrow_up);
+                icon.setImageResource(R.drawable.up);
                 break;
         }
-        icon.setColorFilter(Color.argb(255, 0, 0, 0));
         return v;
     }
 }

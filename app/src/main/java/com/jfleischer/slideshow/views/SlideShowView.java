@@ -4,13 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnCompletionListener;
-import android.media.MediaPlayer.OnErrorListener;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -18,70 +12,44 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.VideoView;
 
-import com.jfleischer.slideshow.FileActivity;
+import com.jfleischer.slideshow.AddSlideActivity;
 import com.jfleischer.slideshow.R;
+import com.jfleischer.slideshow.RemoveSlideActivity;
 import com.jfleischer.slideshow.SlideShowActivity;
-import com.jfleischer.slideshow.SlideShowConfig;
-import com.jfleischer.slideshow.models.FileActivityMode;
+import com.jfleischer.slideshow.SlideShowOptionsActivity;
 import com.jfleischer.slideshow.models.Slide;
 import com.jfleischer.slideshow.models.SlideShow;
+import com.jfleischer.slideshow.utils.SharedPreferencesUtil;
 
 import java.io.File;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class SlideShowView extends RelativeLayout {
 
-    private final static int SLIDE_DURATION_MS = SlideShowConfig.SLIDE_DURATION_MS;
+
     private final static String TAG = SlideShowView.class.getSimpleName();
-    private final OnErrorListener videoViewOnErrorListener = new OnErrorListener() { // gets rid of pop-up
-        @Override
-        public boolean onError(MediaPlayer mp, int what, int extra) {
-            Log.e(TAG, "video error");
-            stopVideoView();
-            setupTimer(0);
-            return true;
-        }
-    };
-    //private final static String db = CouchController.CONTENT;
-    private final OnCompletionListener videoViewCompleteListener = new OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mp) {
-            if (!controlsShown) {
-                if (slides.size() == 1) { // restart video
-                    mp.seekTo(0);
-                    mp.start();
-                    return;
-                }
-                stopVideoView();
-                setupTimer(0);
-            }
-        }
-    };
-    private int fadeTimeInMS = SlideShowConfig.FADE_IN_TIME_MS;
+
     private SlideShow slideShow;
     private List<Slide> slides;
+    private RelativeLayout controls;
     private RelativeLayout[] slideContAry;
-    private FrameLayout[] imgContAry;
-    private ImageView[] imgAry;
-    private GifView[] gifAry;
-    private VideoView[] videoAry;
-    private RelativeLayout[] vidContAry;
+    private SlideImageView[] imgContAry;
+    private SlideGifView[] gifContAry;
+    private SlideVideoView[] vidContAry;
+
+
     private ImageView leftArrow, rightArrow, settings;
     private Timer timer;
     private TimerTask rotateSlideTimerTask, resumeSlideShowTimerTask;
     private int currentSlideIndex;
     private int previousSlideIndex;
-    private LinkedList<RelativeLayout> videoQueue;
-    private boolean touched, controllable, transitioning, controlsShown = false;
-    private String slideName, slideAction; // Used for metrics
+    private boolean controllable, transitioning, controlsShown = false;
 
     public SlideShowView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -97,39 +65,45 @@ public class SlideShowView extends RelativeLayout {
         slides = slideShow.getSlides();
         if (slides.isEmpty()) {
             Log.e(TAG, "slides are of size zero");
-            imgAry[0].setBackground(getResources().getDrawable(R.drawable.img_not_found));
             return;
         }
-        videoQueue = new LinkedList<RelativeLayout>();
-        touched = false;
+        //videoQueue = new LinkedList<RelativeLayout>();
         transitioning = false;
-        controllable = slideShow.isControllable();
+        controllable = SharedPreferencesUtil.get_slideshow_controllable();
         currentSlideIndex = 1;
+
+
+
+
+        controls = findViewById(R.id.slide_show_controls);
 
 
         final RelativeLayout frontSlideContainer = findViewById(R.id.front_slide_container);
         final RelativeLayout backSlideContainer = findViewById(R.id.back_slide_container);
         slideContAry = new RelativeLayout[]{backSlideContainer, frontSlideContainer};
 
-        final FrameLayout frontImgCont = findViewById(R.id.front_imageViewCont);
-        final FrameLayout backImgCont = findViewById(R.id.back_imageViewCont);
-        imgContAry = new FrameLayout[]{backImgCont, frontImgCont};
+        final SlideImageView frontImgCont = findViewById(R.id.front_imageViewCont);
+        final SlideImageView backImgCont = findViewById(R.id.back_imageViewCont);
+        imgContAry = new SlideImageView[]{backImgCont, frontImgCont};
 
-        final ImageView frontImage = findViewById(R.id.front_imageView);
-        final ImageView backImage = findViewById(R.id.back_imageView);
-        imgAry = new ImageView[]{backImage, frontImage};
+        final SlideGifView frontGif = findViewById(R.id.front_gifViewCont);
+        final SlideGifView backGif = findViewById(R.id.back_gifViewCont);
+        gifContAry = new SlideGifView[]{backGif, frontGif};
 
-        final GifView frontGif = findViewById(R.id.front_gif);
-        final GifView backGif = findViewById(R.id.back_gif);
-        gifAry = new GifView[]{backGif, frontGif};
+        final SlideVideoView frontVideoContainer = findViewById(R.id.front_video_container);
+        final SlideVideoView backVideoContainer = findViewById(R.id.back_video_container);
+        vidContAry = new SlideVideoView[]{backVideoContainer, frontVideoContainer};
 
-        final RelativeLayout frontVideoContainer = findViewById(R.id.front_video_container);
-        final RelativeLayout backVideoContainer = findViewById(R.id.back_video_container);
-        vidContAry = new RelativeLayout[]{backVideoContainer, frontVideoContainer};
+        for(SlideImageView img: imgContAry){
+            img.init();
+        }
+        for(SlideGifView gif: gifContAry){
+            gif.init();
+        }
+        for(SlideVideoView video: vidContAry){
+            video.init();
+        }
 
-        final VideoView frontVideo = findViewById(R.id.front_slide_video);
-        final VideoView backVideo = findViewById(R.id.back_slide_video);
-        videoAry = new VideoView[]{backVideo, frontVideo};
 
         leftArrow = findViewById(R.id.slide_show_left_arrow);
         rightArrow = findViewById(R.id.slide_show_right_arrow);
@@ -137,24 +111,23 @@ public class SlideShowView extends RelativeLayout {
         settings.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                CharSequence[] colors = new CharSequence[]{"Add slides", "Remove slides"};
-                final Context context = SlideShowActivity.getInstance();
-                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                CharSequence[] options = new CharSequence[]{
+                        getContext().getString(R.string.action_options),
+                        getContext().getString(R.string.action_add),
+                        getContext().getString(R.string.action_remove)};
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                 builder.setTitle("Choose an action");
-                builder.setItems(colors, new DialogInterface.OnClickListener() {
+                builder.setItems(options, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // the user clicked on colors[which]
+
                         if(which==0){
-                            final Intent intent = new Intent(SlideShowActivity.getInstance(),FileActivity.class);
-                            intent.putExtra("mode", FileActivityMode.Add.ordinal());
-                            context.startActivity(intent);
+                            getContext().startActivity(new Intent(getContext(), SlideShowOptionsActivity.class));
                         }else if(which==1){
-                            final Intent intent = new Intent(SlideShowActivity.getInstance(),FileActivity.class);
-                            intent.putExtra("mode", FileActivityMode.Delete.ordinal());
-                            context.startActivity(intent);
+                            getContext().startActivity(new Intent(getContext(), AddSlideActivity.class));
+                        }else if(which==2){
+                            getContext().startActivity(new Intent(getContext(), RemoveSlideActivity.class));
                         }
-                        //context.finish();
                     }
                 });
                 builder.show();
@@ -162,12 +135,8 @@ public class SlideShowView extends RelativeLayout {
             }
         });
 
-        frontVideo.setOnCompletionListener(videoViewCompleteListener);
-        backVideo.setOnCompletionListener(videoViewCompleteListener);
-        frontVideo.setOnErrorListener(videoViewOnErrorListener);
-        backVideo.setOnErrorListener(videoViewOnErrorListener);
-
         setSlideBackground(slides.get(0), 1);
+        setSlideBackground(slides.get(0), 0);
         slideContAry[1].setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
@@ -176,7 +145,9 @@ public class SlideShowView extends RelativeLayout {
                     onSlideTouch(slides.get(0));
                     return true;
                 }
-                return false;
+                performClick();
+                view.performClick();
+                return performClick();
             }
         });
 
@@ -184,47 +155,41 @@ public class SlideShowView extends RelativeLayout {
         if (!slideS.isTransparent()) {
             setBackgroundColor(Color.BLACK);
         }
-        /*if(!slideShow.isFullscreen()){
-            LayoutParams lp = (LayoutParams)this.getLayoutParams();
-            lp.setMargins(0, (int)getResources().getDimension(R.dimen.header_height), (int)getResources().getDimension(R.dimen.advertisement_panel_width), 0);
-            setLayoutParams(lp);
-        }*/
+
+        ProgressBar p = findViewById(R.id.slide_show_progress_bar);
+        p.setVisibility(GONE);
 
         if (slides.size() == 1) {
             Log.i(TAG, "Slides are of size one");
-            if (isVideoFile(slides.get(0).getImage())) {
-                startVideo();
-            }
-            return;
-        }
-
-        if (isVideoFile(slides.get(0).getImage())) {
-            startVideo();
         } else {
-            if (slides.get(0).getDurationInSeconds() > 0) {
-                setupTimer(slides.get(0).getDurationInSeconds() * 1000);
+            if (slides.get(0).getType() == Slide.SlideType.Video) {
+                vidContAry[0].startVideo(slides.size()<2);
             } else {
-                setupTimer(SLIDE_DURATION_MS);
+                if (slides.get(0).getDurationInSeconds() > 0) {
+                    setupTimer(slides.get(0).getDurationInSeconds() * 1000);
+                } else {
+                    setupTimer(SharedPreferencesUtil.get_slide_duration());
+                }
             }
         }
     }
 
     private void onSlideTouch(Slide slide) {
         //if(!touched){ // prevent duplicate touches
-        if (controllable && !controlsShown) {
-            controlsShown = true;
-            touched = true;
-            resumeSlideShowTimerTask = new ResumeSlideShowTimerTask();
-            fadeTimeInMS = 800;
+
+        controlsShown = true;
+        settings.setVisibility(View.VISIBLE);
+        resumeSlideShowTimerTask = new ResumeSlideShowTimerTask();
+
+        if (controllable) {
             if(slides.size()>1) {
                 leftArrow.setVisibility(View.VISIBLE);
                 rightArrow.setVisibility(View.VISIBLE);
             }
-            settings.setVisibility(View.VISIBLE);
             rightArrow.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    stopVideoView();
+                    //stopVideoView();
                     nextScreen(true);
                     resetResumeSlideShowTimerTask();
                 }
@@ -232,14 +197,16 @@ public class SlideShowView extends RelativeLayout {
             leftArrow.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    stopVideoView();
+                    //stopVideoView();
                     nextScreen(false);
                     resetResumeSlideShowTimerTask();
                 }
             });
-            if (isVideoFile(slides.get(0).getImage())) startVideo();
-            resetResumeSlideShowTimerTask();
+            //if (isVideoFile(slides.get(0).getImage())) startVideo();
+
         }
+
+        resetResumeSlideShowTimerTask();
             /*}else{
                 touched = true;
                 //slideAction = slide.getAction();
@@ -314,6 +281,7 @@ public class SlideShowView extends RelativeLayout {
         // dissolveToNext
         final int isFront = (slideContAry[1].getAlpha() == 0 ? 0 : 1);
         final int notIsFront = (isFront == 1 ? 0 : 1);
+        int fadeTimeInMS = SharedPreferencesUtil.get_fade_duration();
 
         final Animation animation = new AlphaAnimation(1.0f, 0.0f);
         animation.setDuration(fadeTimeInMS);
@@ -340,17 +308,18 @@ public class SlideShowView extends RelativeLayout {
             @Override
             public void onAnimationEnd(Animation animation) {
                 slideContAry[isFront].setAlpha(0.0f);
-                // clearViews(isFront);
+
                 setSlideBackground(slides.get(currentSlideIndex), isFront);
-                if (!isVideoFile(slides.get(previousSlideIndex).getImage())) {
+                if (slides.get(previousSlideIndex).getType() != Slide.SlideType.Video) {
                     timer = null;
                     if (slides.get(previousSlideIndex).getDurationInSeconds() > 0) {
                         setupTimer(slides.get(previousSlideIndex).getDurationInSeconds() * 1000);
                     } else {
-                        setupTimer(SLIDE_DURATION_MS);
+                        setupTimer(SharedPreferencesUtil.get_slide_duration());
                     }
                 } else {
-                    startVideo();
+                    //startVideo();
+                    vidContAry[isFront].startVideo(slides.size()<2);
                 }
                 transitioning = false;
             }
@@ -359,6 +328,8 @@ public class SlideShowView extends RelativeLayout {
             public void onAnimationStart(Animation animation) {
                 setSlideBackground(slides.get(previousSlideIndex), notIsFront);
                 slideContAry[notIsFront].setAlpha(1.0f);
+                slideContAry[notIsFront].bringToFront();
+                controls.bringToFront();
             }
 
             @Override
@@ -368,88 +339,49 @@ public class SlideShowView extends RelativeLayout {
     }
 
     private void setSlideBackground(Slide slide, int isFront) {
-
-        final String path = slide.getImage();
+        final String path = slide.getPath();
         if(new File(path).exists()){
-            if (slide.getImage().endsWith(".gif")) { // gif
-                hideImg(isFront);
-                gifAry[isFront].setGifImage(path);
-            } else if (isVideoFile(slide.getImage())) { // video
-                hideImg(isFront);
-                gifAry[isFront].reset();
-                setupVideoView(path, isFront);
-
-            } else { // bitmap
-                gifAry[isFront].reset();
-                File imgFile = new File(path);
-                Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                imgAry[isFront].setBackground(new BitmapDrawable(getResources(), bitmap));
+            switch (slide.getType()){
+                case Image:
+                    gifContAry[isFront].cleanup();
+                    vidContAry[isFront].cleanup();
+                    imgContAry[isFront].setup(slide);
+                    imgContAry[isFront].bringToFront();
+                    break;
+                case Gif:
+                    imgContAry[isFront].cleanup();
+                    vidContAry[isFront].cleanup();
+                    gifContAry[isFront].setup(slide);
+                    gifContAry[isFront].bringToFront();
+                    break;
+                case Video:
+                    imgContAry[isFront].cleanup();
+                    gifContAry[isFront].cleanup();
+                    vidContAry[isFront].setup(slide);
+                    vidContAry[isFront].bringToFront();
+                    break;
+                case Unknown:
+                    imgContAry[isFront].cleanup();
+                    gifContAry[isFront].cleanup();
+                    vidContAry[isFront].cleanup();
+                    break;
             }
         }else{
-            gifAry[isFront].reset();
-            File imgFile = new File(path);
-            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.img_not_found);
-
-            imgAry[isFront].setBackground(new BitmapDrawable(getResources(), bitmap));
+            imgContAry[isFront].cleanup();
+            gifContAry[isFront].cleanup();
+            vidContAry[isFront].cleanup();
+            Log.e(TAG, "file does not exist");
+            //File imgFile = new File(path);
+            //Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.img_not_found);
+            //imgAry[isFront].setBackground(new BitmapDrawable(getResources(), bitmap));
         }
     }
 
-    private void hideImg(int isFront) {
-        imgContAry[isFront].setBackgroundColor(Color.TRANSPARENT);
-        imgAry[isFront].setBackground(null);
-    }
-
-    //VIDEO
-    private boolean isVideoFile(String fileName) {
-        return fileName.endsWith(".mp4") || fileName.endsWith(".3gp") || fileName.endsWith(".avi");
-    }
-
-    private void setupVideoView(String path, int isFront) {
-        destroyTimers();
-        final RelativeLayout videoContainer = vidContAry[isFront];
-        final VideoView videoView = videoAry[isFront];
-        videoQueue.add(videoContainer);
-        videoView.setVideoPath(path);
-    }
-
-    private void startVideo() {
-        final VideoView vv = (VideoView) videoQueue.getFirst().getChildAt(0);
-        //videoQueue.getFirst().setBackgroundColor(Color.BLACK);
-        vv.setVisibility(View.VISIBLE);
-        vv.start();
-        vv.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                vv.start();
-            }
-        });
-    }
-
-    private void stopVideoView() {
-        if (videoQueue == null || videoQueue.isEmpty())
-            return;
-        final VideoView vv = (VideoView) videoQueue.getFirst().getChildAt(0);
-        vv.setVisibility(View.INVISIBLE);
-        videoQueue.getFirst().setBackgroundColor(Color.TRANSPARENT);
-        vv.stopPlayback();
-        videoQueue.remove();
-    }
-
-    // Used for metrics
-    public String getAction() {
-        return slideAction;
-    }
-
-    public String getName() {
-        return slideName;
-    }
 
     public void onDestroy() {
         controlsShown = false;
         destroyTimers();
-        if (videoQueue == null || videoQueue.isEmpty())
-            return;
-        stopVideoView();
+
         SlideShowActivity.getInstance().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -460,8 +392,14 @@ public class SlideShowView extends RelativeLayout {
             }
         });
 
-        for(ImageView img: imgAry){
-            img.setBackground(null);
+        for(SlideImageView img: imgContAry){
+            img.cleanup();
+        }
+        for(SlideGifView gif: gifContAry){
+            gif.cleanup();
+        }
+        for(SlideVideoView video: vidContAry){
+            video.cleanup();
         }
         setKeepScreenOn(false);
     }
@@ -482,7 +420,6 @@ public class SlideShowView extends RelativeLayout {
     private class ResumeSlideShowTimerTask extends TimerTask {
         @Override
         public void run() {
-            fadeTimeInMS = 1500;
             controlsShown = false;
             setupTimer(0);
             SlideShowActivity.getInstance().runOnUiThread(new Runnable() {

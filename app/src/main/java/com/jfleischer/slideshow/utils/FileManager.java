@@ -44,14 +44,13 @@ public class FileManager {
         try {
             String[] list = mgr.list("");
             if (list != null)
-                for (int i = 0; i < list.length; ++i) {
-                    String fileName = list[i];
+                for (String fileName: list){
                     File file = new File(fileName);
-                    if (!file.isDirectory() && Slide.isValidFileName(fileName)) {
+                    if (!file.isDirectory()) {
                         InputStream in = null;
                         OutputStream out = null;
                         try {
-                            in = mgr.open(list[i]);
+                            in = mgr.open(fileName);
                             File outFile = new File(destinationDir, fileName);
                             out = new FileOutputStream(outFile);
                             byte[] buffer = new byte[1024];
@@ -65,14 +64,12 @@ public class FileManager {
                             if (in != null) {
                                 try { in.close();
                                 } catch (IOException e) {
-                                    Log.e(TAG, e.getMessage());
                                     e.printStackTrace();
                                 }
                             }
                             if (out != null) {
                                 try { out.close();
                                 } catch (IOException e) {
-                                    Log.e(TAG, e.getMessage());
                                     e.printStackTrace();
                                 }
                             }

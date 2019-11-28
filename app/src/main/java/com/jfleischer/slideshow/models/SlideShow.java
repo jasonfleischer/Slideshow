@@ -1,14 +1,11 @@
 package com.jfleischer.slideshow.models;
 
-import com.jfleischer.slideshow.SlideShowConfig;
 import com.jfleischer.slideshow.utils.MergeSort;
 
 import java.util.List;
 
 public class SlideShow {
     private List<Slide> slides;
-    private boolean isControllable = SlideShowConfig.CONTROLLABLE;
-    private boolean isFullscreen = true;
     private boolean isTransparent = false;
     private int controllableTimeoutInSeconds = 15;
 
@@ -18,14 +15,6 @@ public class SlideShow {
 
     public void setSlides(List<Slide> slides) {
         this.slides = slides;
-    }
-
-    public boolean isControllable() {
-        return isControllable;
-    }
-
-    public boolean isFullscreen() {
-        return isFullscreen;
     }
 
     public boolean isTransparent() {

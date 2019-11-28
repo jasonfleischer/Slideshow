@@ -52,6 +52,7 @@ public class GifView extends SurfaceView {
 
     public void reset() {
         isGif = false;
+        //canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR);
         setOnTouchListener(null);
         setAlpha(1.0f);
         invalidate();
@@ -62,6 +63,7 @@ public class GifView extends SurfaceView {
         super.onDraw(canvas);
         if (!isGif) {
             canvas.drawColor(Color.TRANSPARENT, Mode.CLEAR); // clear display
+
         } else {
             long now = android.os.SystemClock.uptimeMillis();
             if (movieStart == 0)

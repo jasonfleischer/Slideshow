@@ -11,7 +11,7 @@ import android.graphics.Paint;
 // util class for image processing
 public class BitmapAndImageHelper {
 
-    public static Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
+    public static Bitmap getResizedBitmap(Bitmap bm, int newWidth, int newHeight) {
         final int width = bm.getWidth();
         final int height = bm.getHeight();
         if(width == newWidth && height == newHeight)
@@ -65,8 +65,7 @@ public class BitmapAndImageHelper {
             sumOfGreen +=Color.green(pixelColor);
             sumOfBlue += pixelColor & 0x000000FF;
         }
-        final int colorInt = Color.rgb(sumOfRed/numberOfPixels, sumOfGreen/numberOfPixels, sumOfBlue/numberOfPixels);
-        return colorInt;
+        return Color.rgb(sumOfRed/numberOfPixels, sumOfGreen/numberOfPixels, sumOfBlue/numberOfPixels);
     }
 
     public static int getComplementColor(int color){
