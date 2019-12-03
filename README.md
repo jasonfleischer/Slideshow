@@ -3,7 +3,7 @@ Android slideshow application. With adding and removing capabilities supporting 
 
 Minimum Android 4.3 Jelly Bean (API 18)
 
-Download [here](https://play.google.com/store/apps/details?id=com.jfleischer.slideshow)
+Click [here](https://play.google.com/store/apps/details?id=com.jfleischer.slideshow) to download on Google Play
 
 ### Screenshots
 ![main](/screenshots/main.png)
